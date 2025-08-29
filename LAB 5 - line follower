@@ -1,0 +1,112 @@
+// Define motor control pins
+#define ENA 5    // Left motor speed (PWM)
+#define ENB 6    // Right motor speed (PWM)
+ 
+#define IN1 9    // Left motor direction
+#define IN2 11
+#define IN3 7    // Right motor direction
+#define IN4 8
+ 
+// IR sensor pins
+#define LEFT_SENSOR_PIN 2
+#define CENTER_SENSOR_PIN 4
+#define RIGHT_SENSOR_PIN 10
+ 
+// Default speed
+int speedVal = 150;
+ 
+void setup() {
+  // Set motor pins as outputs
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+ 
+  // Set IR sensor pins as inputs
+  pinMode(LEFT_SENSOR_PIN, INPUT);
+  pinMode(CENTER_SENSOR_PIN, INPUT);
+  pinMode(RIGHT_SENSOR_PIN, INPUT);
+ 
+  // Ensure motors are stopped at the beginning
+  stopMotors();
+  Serial.begin(9600);
+}
+ 
+void loop() {
+  int leftSensorState = digitalRead(LEFT_SENSOR_PIN);
+  int centerSensorState = digitalRead(CENTER_SENSOR_PIN);
+  int rightSensorState = digitalRead(RIGHT_SENSOR_PIN);
+ 
+  Serial.print("Left: ");
+  Serial.print(leftSensorState);
+  Serial.print(" Center: ");
+  Serial.print(centerSensorState);
+  Serial.print(" Right: ");
+  Serial.println(rightSensorState);
+ 
+  // Line following logic
+  if (centerSensorState == LOW) {
+    // If the center sensor detects the line (black surface), move forward
+    moveForward();
+  } 
+  else if (leftSensorState == LOW) {
+    // If the left sensor detects the line (black surface), turn left
+    leftTurn();
+  } 
+  else if (rightSensorState == LOW) {
+    // If the right sensor detects the line (black surface), turn right
+    rightTurn();
+  }
+//  else if (leftSensorState == HIGH && rightSensorState == HIGH) {
+//    // If no sensor detects the line, but both left and right are off, turn in place
+//    // This happens when robot is about to leave the line (sharp turn)
+//    if (centerSensorState == HIGH) {
+//      // If no sensor is aligned, keep turning until the robot finds the line
+//      stopMotors();  // Optionally stop for a brief moment to "search"
+//      delay(200);  // Wait to search for the line
+//      leftTurn();  // Try to turn left to realign
+//    }
+//  }
+  else {
+    // If no sensors detect the line, stop the motors (optional)
+    stopMotors();
+  }
+ 
+  delay(100); // Adjust to control the speed of line following
+}
+ 
+// ========== Movement Functions ==========
+ 
+void rightTurn() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  analogWrite(ENA, speedVal);
+  analogWrite(ENB, speedVal);
+}
+ 
+void leftTurn() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, speedVal);
+  analogWrite(ENB, speedVal);
+}
+ 
+void moveForward() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, speedVal);
+  analogWrite(ENB, speedVal);
+}
+ 
+void stopMotors() {
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+}
